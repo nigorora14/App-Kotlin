@@ -34,14 +34,18 @@ class MainActivity : AppCompatActivity() {
         val email = editTextEmail?.text.toString()
         val password = editTextPassword?.text.toString()
 
-        Toast.makeText(this, "El email es: $email", Toast.LENGTH_SHORT).show()
-        Toast.makeText(this, "El password es: $password", Toast.LENGTH_SHORT).show()
+        if(isValidForm(email, password)) {
+            Toast.makeText(this, "El formulario es valido", Toast.LENGTH_LONG).show()
+        }
+        else {
+            Toast.makeText(this, "El formulario no es valido", Toast.LENGTH_LONG).show()
+        }
 
         Log.d("MainActivity", "El email es: $email")
         Log.d("MainActivity", "El password es: $password")
     }
 
-    fun String.isEmailValid():Boolean{
+    fun String.isEmailValid(): Boolean{
         return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
     }
     private fun isValidForm(email: String, password: String): Boolean {
@@ -56,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         }
         return true
     }
+
     private fun gotoRegister(){
         val i = Intent(this, RegisterActivity::class.java)
         startActivity(i)
