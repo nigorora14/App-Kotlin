@@ -10,6 +10,12 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import com.ngonzano.delivery.R
+import com.ngonzano.delivery.models.ResponseHttp
+import com.ngonzano.delivery.models.User
+import com.ngonzano.delivery.providers.UsersProvider
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -23,6 +29,8 @@ class RegisterActivity : AppCompatActivity() {
     var editTextPassword: EditText? = null
     var editTextConfirmPassword: EditText? = null
     var buttonRegister: Button? = null
+
+    var usersProvider = UsersProvider()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,7 +61,31 @@ class RegisterActivity : AppCompatActivity() {
         val confirmPassword = editTextConfirmPassword?.text.toString()
 
         if (isValidForm(name,lastname,email,phone,password,confirmPassword)){
-            Toast.makeText(this, "El formulario es valido", Toast.LENGTH_LONG).show()
+            //Toast.makeText(this, "El formulario es valido", Toast.LENGTH_LONG).show()
+            val user = User(
+                Name = name,
+                Lastname = lastname,
+                Email = email,
+                Phone = phone,
+                Password = password
+            )
+            usersProvider.register(user)?.enqueue(object: Callback<ResponseHttp>{
+                override fun onResponse(
+                    call: Call<ResponseHttp>,
+                    response: Response<ResponseHttp>
+                ) {
+                    Toast.makeText(this@RegisterActivity, response.body()?.Message,Toast.LENGTH_LONG).show()
+                    Log.d(TAG, "Response: ${response}")
+                    Log.d(TAG, "Body: ${response.body()}") // trae la respuesta en json success, message, data
+
+                }
+
+                override fun onFailure(call: Call<ResponseHttp>, t: Throwable) {
+                   Log.d(TAG,"Se produjo un error ${t.message}")
+                   Toast.makeText(this@RegisterActivity, "Se produjo un error ${t.message}", Toast.LENGTH_LONG).show()
+                }
+
+            })
         }
         else {
             Toast.makeText(this, "El formulario no es valido", Toast.LENGTH_LONG).show()
