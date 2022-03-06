@@ -9,9 +9,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import com.google.gson.Gson
 import com.ngonzano.delivery.R
+import com.ngonzano.delivery.activities.client.ClientHomeActivity
 import com.ngonzano.delivery.models.ResponseHttp
+import com.ngonzano.delivery.models.User
 import com.ngonzano.delivery.providers.UsersProvider
+import com.ngonzano.delivery.utils.SharedPref
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -23,7 +27,7 @@ class MainActivity : AppCompatActivity() {
     var editTextPassword: EditText? = null
     var buttonLogin: Button? = null
 
-    var usersProvider = UsersProvider()
+    var usersProvider = UsersProvider() // se comunica con el backend
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +40,10 @@ class MainActivity : AppCompatActivity() {
 
         buttonLogin?.setOnClickListener{login()}
         imageViewGoToRegister?.setOnClickListener{gotoRegister()}
+
+        getUserFromSession() // para que no vuelva ir al login directo
     }
+
     private fun login(){
         val email = editTextEmail?.text.toString()
         val password = editTextPassword?.text.toString()
@@ -50,6 +57,9 @@ class MainActivity : AppCompatActivity() {
                     Log.d("MainActivity", "Response: ${response.body()}")
                     if (response.body()?.Success == true){
                         Toast.makeText(this@MainActivity, response.body()?.Message, Toast.LENGTH_LONG).show()
+
+                        saveUserInSession(response.body()?.Data.toString()) // almacenando el usuario
+                        goToClientHome()//llama al metodo | nos envia a la pantalla
                     }
                     else {
                         Toast.makeText(this@MainActivity, "Los Datos no son correctos.", Toast.LENGTH_LONG).show()
@@ -69,8 +79,31 @@ class MainActivity : AppCompatActivity() {
         //Log.d("MainActivity", "El password es: $password")
     }
 
+    private fun goToClientHome(){
+        val i = Intent(this, ClientHomeActivity::class.java) //guarda el usuario en session
+        startActivity(i)//inicializar
+    }
+
+    //Se va almacenar el usuario en session
+    private fun saveUserInSession(data: String){
+        val sharedPref = SharedPref(this) //pide un activity y es this por que esta dentro de un activity
+        val gson = Gson()
+        val user = gson.fromJson(data, User::class.java) // almacena toda la informacion del usuario
+        sharedPref.save("user", user) //"user" es el nombre del key puede ser cualquier nombre su valor sera el objeto user
+    }
+
     fun String.isEmailValid(): Boolean{
         return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    }
+
+    private fun getUserFromSession(){ // para que no vuelva ir al login
+        val sharedPref = SharedPref(this)
+        val gson = Gson()
+        //"user" es la misma que se uso en el metodo saveUserInSession del MainActivity
+        if (!sharedPref.getData("user").isNullOrBlank()){//si el usuario existe en session
+            //val user  = gson.fromJson(sharedPref.getData("user"),User::class.java)// obtiene el usuario
+            goToClientHome()
+        }
     }
     private fun isValidForm(email: String, password: String): Boolean {
         if (email.isBlank()){

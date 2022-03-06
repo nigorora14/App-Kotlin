@@ -9,10 +9,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
+import com.google.gson.Gson
 import com.ngonzano.delivery.R
+import com.ngonzano.delivery.activities.client.ClientHomeActivity
 import com.ngonzano.delivery.models.ResponseHttp
 import com.ngonzano.delivery.models.User
 import com.ngonzano.delivery.providers.UsersProvider
+import com.ngonzano.delivery.utils.SharedPref
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -74,6 +77,10 @@ class RegisterActivity : AppCompatActivity() {
                     call: Call<ResponseHttp>,
                     response: Response<ResponseHttp>
                 ) {
+                    if (response.body()?.Success==true){//si el success es true
+                        saveUserInSession(response.body()?.Data.toString()) // guardar la session del usuario
+                        goToClientHome()
+                    }
                     Toast.makeText(this@RegisterActivity, response.body()?.Message,Toast.LENGTH_LONG).show()
                     Log.d(TAG, "Response: ${response}")
                     Log.d(TAG, "Body: ${response.body()}") // trae la respuesta en json success, message, data
@@ -100,6 +107,10 @@ class RegisterActivity : AppCompatActivity() {
     }
     fun String.isEmailValid(): Boolean{
         return !TextUtils.isEmpty(this) && android.util.Patterns.EMAIL_ADDRESS.matcher(this).matches()
+    }
+    private fun goToClientHome(){
+        val i = Intent(this, ClientHomeActivity::class.java) //guarda el usuario en session
+        startActivity(i)//inicializar
     }
     private fun isValidForm(
         name: String,
@@ -146,7 +157,13 @@ class RegisterActivity : AppCompatActivity() {
         }
         return true
     }
-
+    //Se va almacenar el usuario en session
+    private fun saveUserInSession(data: String){
+        val sharedPref = SharedPref(this) //pide un activity y es this por que esta dentro de un activity
+        val gson = Gson()
+        val user = gson.fromJson(data, User::class.java) // almacena toda la informacion del usuario
+        sharedPref.save("user", user) //"user" es el nombre del key puede ser cualquier nombre su valor sera el objeto user
+    }
     private fun goToLogin(){
         val i = Intent(this, MainActivity::class.java)
         startActivity(i)
