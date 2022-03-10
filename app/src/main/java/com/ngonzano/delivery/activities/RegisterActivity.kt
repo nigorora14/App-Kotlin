@@ -82,7 +82,7 @@ class RegisterActivity : AppCompatActivity() {
                         goToClientHome()
                     }
                     Toast.makeText(this@RegisterActivity, response.body()?.Message,Toast.LENGTH_LONG).show()
-                    Log.d(TAG, "Response: ${response}")
+                    Log.d(TAG, "Response: $response")
                     Log.d(TAG, "Body: ${response.body()}") // trae la respuesta en json success, message, data
 
                 }
